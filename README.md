@@ -184,11 +184,11 @@ ROI cropping gives a large accuracy jump over full-image classification on this 
 
 ## `legacy/`
 
-`baseline/scripts/legacy/` holds scripts kept for reference that operate on superseded dataset versions
-(`roi_dataset`/`roi_dataset_v3` instead of the current `roi_dataset_v4`), were one-off preprocessing
-utilities (`convert_images_to_png.py`), or were superseded drafts (`plot_gradcam_full_mix.py` loads the
-ROI checkpoint despite its name — fixed in `plot_gradcam_baseline_mix.py`). They are not part of the
-reproducible pipeline above.
+`baseline/scripts/legacy/` (gitignored — not tracked in this repository, since it isn't part of the
+reproducible pipeline) holds scripts kept only for local reference: ones that operate on superseded
+dataset versions (`roi_dataset`/`roi_dataset_v3` instead of the current `roi_dataset_v4`), one-off
+preprocessing utilities (`convert_images_to_png.py`), and superseded drafts (`plot_gradcam_full_mix.py`
+loads the ROI checkpoint despite its name — fixed in `plot_gradcam_baseline_mix.py`).
 
 ## Roadmap
 

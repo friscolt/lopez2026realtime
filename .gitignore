@@ -24,5 +24,9 @@ Thumbs.db
 
 # Generated figures (reproducible from scripts, not versioned)
 *.png
-!fewshot/scripts/*.png
 demo/outputs/
+
+# Superseded / one-off scripts kept locally for reference, not part of the
+# reproducible pipeline (see README's "legacy/" section) — not tracked in git,
+# but left on disk.
+baseline/scripts/legacy/
