@@ -1,0 +1,11 @@
+backbone: vit_small
+roi: true
+img_size: 224
+batch_size: 16
+epochs: 40
+lr: 3.0e-5
+optimizer: adamw
+weight_decay: 1.0e-4
+patience: 7
+scheduler_factor: 0.5
+scheduler_patience: 3

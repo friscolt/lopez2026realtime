@@ -15,7 +15,7 @@ CNN/ViT baselines, region-of-interest (ROI) cropping, test-time augmentation (TT
                  ┌────────────────────┐
                  │  raw images + masks │  $DATA_ROOT/{SUR,SEC,MIX}/{train,test}/<class>/
                  └─────────┬──────────┘
-                           │ baseline/scripts/create_roi_dataset_v4.py
+                           │ scripts/build_roi_dataset.py
                            ▼
                  ┌────────────────────┐
                  │   ROI dataset v4    │  $DATA_ROOT/roi_dataset_v4/...
@@ -23,29 +23,43 @@ CNN/ViT baselines, region-of-interest (ROI) cropping, test-time augmentation (TT
              ┌─────────────┼─────────────────────────┐
              ▼                                        ▼
    ┌───────────────────┐                    ┌───────────────────────┐
-   │ baseline train/eval│                    │ few-shot ProtoNet      │
-   │ (ResNet34/50, ViT-S)│                    │ train/eval/eval+TTA   │
-   │ full image & ROI,   │                    │ (fewshot/scripts/)    │
-   │ +TTA, +summarize    │                    └───────────┬───────────┘
-   │ (baseline/scripts/) │                                │
+   │ scripts/train.py    │                    │ scripts/train_protonet.py │
+   │ scripts/evaluate.py │                    │ scripts/evaluate_protonet.py│
+   │ (ResNet34/50, ViT-S,│                    │ (few-shot, full & ROI) │
+   │  full image & ROI)  │                    └───────────┬───────────┘
    └─────────┬───────────┘                                │
              │                                             ▼
-             ▼                                   plot_tsne / plot_umap
-   gradcam/, plot_gradcam_*.py                 (embedding comparison)
-   (interpretability)
+             ▼                                   scripts/plot_embeddings.py
+   scripts/generate_gradcam.py                  (t-SNE / UMAP comparison)
+   scripts/plot_gradcam_*.py
 
-   time/  →  inference latency benchmarks (full image vs ROI, baseline vs few-shot)
+   scripts/benchmark_inference_time.py  →  latency (full image vs ROI, classifier vs few-shot)
 ```
 
 ## Repository structure
 
 ```
-baseline/scripts/     ResNet34/50 & ViT-small: train, evaluate (+TTA), summarize, ROI dataset creation
-baseline/scripts/legacy/  superseded scripts (older/unversioned ROI dataset, one-off preprocessing)
-fewshot/scripts/       ProtoNet: episodic dataset, model, train/evaluate(+TTA), embedding plots
-gradcam/               Grad-CAM generation for the ResNet34 baseline (full & ROI)
-time/                  Inference latency benchmarks
+config/
+├── baseline/       hyperparameters per backbone x {full, roi} (resnet34, resnet50, vit_small)
+├── fewshot/        ProtoNet hyperparameters (n_way, episodes, lr, ...)
+└── roi_dataset.yaml
+
+src/
+├── models/         backbones.py (ResNet34/50/ViT-small factory), protonet.py
+├── data/           episodic_dataset.py, transforms.py (train/eval/TTA transforms)
+├── losses/         prototypical.py (shared ProtoNet prototype + distance logic)
+└── utils/          seed.py
+
+scripts/            all CLI entry points -- train/evaluate/summarize, ROI dataset creation,
+                    few-shot, Grad-CAM, embedding plots, inference benchmarks (see Usage below)
+
+results/            static snapshot of reported results; real checkpoints/metrics live under $DATA_ROOT
+demo/               end-to-end inference + Grad-CAM + UMAP demo on a handful of test images
 ```
+
+`baseline/scripts/legacy/` still exists **on disk** (gitignored, not tracked in this repo) for local
+reference: superseded scripts operating on old dataset versions, one-off utilities, and drafts with bugs
+that got fixed elsewhere. See "`legacy/`" below.
 
 ## Installation
 
@@ -96,50 +110,54 @@ under `$DATA_ROOT` in the layout above is expected to come from that dataset (or
 ### 1. Build the ROI dataset (optional, only needed for ROI experiments)
 
 ```bash
-python baseline/scripts/create_roi_dataset_v4.py
+python scripts/build_roi_dataset.py
 ```
 
 ### 2. Train & evaluate baselines
 
 ```bash
 # Full-image baseline (ResNet34, view MIX, seed 0)
-python baseline/scripts/train_resnet34_baseline.py --view MIX --seed 0
-python baseline/scripts/evaluate_resnet34_tta.py --view MIX --seed 0
+python scripts/train.py --config config/baseline/resnet34.yaml --view MIX --seed 0
+python scripts/evaluate.py --config config/baseline/resnet34.yaml --view MIX --seed 0
 
 # ROI variant
-python baseline/scripts/train_resnet34_baseline_roi.py --view MIX --seed 0
-python baseline/scripts/evaluate_resnet34_roi_tta.py --view MIX --seed 0
+python scripts/train.py --config config/baseline/resnet34_roi.yaml --view MIX --seed 0
+python scripts/evaluate.py --config config/baseline/resnet34_roi.yaml --view MIX --seed 0
 ```
 
-The same pattern applies to `resnet50` and `vit_small`. After running all views/seeds, aggregate results with
-the matching `summarize_*.py` script (e.g. `summarize_baseline_results_resnet34.py`).
+Swap the config for `resnet50[.yaml|_roi.yaml]` or `vit_small[.yaml|_roi.yaml]` to train the other
+backbones — `scripts/train.py` and `scripts/evaluate.py` are shared across all six combinations. After
+running all views/seeds, aggregate results with:
+
+```bash
+python scripts/summarize_results.py --backbone resnet34 --roi --tta
+```
 
 ### 3. Few-shot learning (ProtoNet)
 
 ```bash
-cd fewshot/scripts
-python train_protonet.py --view MIX --shot 5 --data_root "$DATA_ROOT"
-python evaluate_protonet.py --view MIX --shot 5 --data_root "$DATA_ROOT"
-python evaluate_protonet_tta.py --view MIX --shot 5 --data_root "$DATA_ROOT" --model_root "$DATA_ROOT/models_fsl"
+python scripts/train_protonet.py --view MIX --shot 5 --data_root "$DATA_ROOT"
+python scripts/evaluate_protonet.py --view MIX --shot 5 --data_root "$DATA_ROOT" --model_root "$DATA_ROOT/models_fsl"
+python scripts/evaluate_protonet.py --view MIX --shot 5 --data_root "$DATA_ROOT" --model_root "$DATA_ROOT/models_fsl" --tta 5
 
 # Or run the full sweep (all views × shots, full-image and ROI):
-./run_fewshot_experiments.sh
-./run_eval_all.sh
-./run_eval_tta_roi.sh
+./scripts/run_fewshot_experiments.sh
+./scripts/run_eval_all.sh
+./scripts/run_eval_tta_roi.sh
+
+python scripts/summarize_fewshot_results.py --tta
 ```
 
-`plot_tsne_compare.py` / `plot_umap_compare_clean.py` compare embedding spaces (ResNet34 full vs ROI vs
-ProtoNet); they expect specific checkpoints (MIX/seed0, 5-shot) to already exist — edit the path constants
-at the top to match your own runs.
+`scripts/plot_embeddings.py --method {tsne,umap}` compares embedding spaces (ResNet34 full vs ROI vs
+ProtoNet) for a given view/seed/shot (defaults: MIX, seed 0, 5-shot).
 
 ### 4. Grad-CAM
 
 ```bash
-python gradcam/generate_gradcam_resnet34_mix_seed0.py
-python gradcam/generate_gradcam_resnet34_mix_seed0_roi.py
+python scripts/generate_gradcam.py --roi --view MIX --seed 0
+python scripts/plot_gradcam_single_model.py --roi --view MIX --seed 0
+python scripts/plot_gradcam_comparison.py   # and the _originalsize / _grid / _random variants
 ```
-
-The `baseline/scripts/plot_gradcam_*.py` scripts build comparison figures from the generated overlays.
 
 ### 5. Demo: inference + Grad-CAM + UMAP on a few test examples
 
@@ -155,32 +173,16 @@ python demo/run_inference_demo.py --view MIX --seed 0 --shot 5 --n_per_class 1
 ### 6. Inference-time benchmarks
 
 ```bash
-python time/test_time_resnet34_full_images.py   # ResNet34 baseline, full images
-python time/test_time_ROI.py                    # ResNet34 baseline, ROI
-python time/test_time_FSL.py                    # ProtoNet, full images
-python time/test_time_resnet34_full_images_fewshot.py   # ProtoNet, full images (alt. loader)
+python scripts/benchmark_inference_time.py --model resnet34            # full-image classifier
+python scripts/benchmark_inference_time.py --model resnet34 --roi      # ROI classifier
+python scripts/benchmark_inference_time.py --model protonet --shot 5   # full-image ProtoNet
+python scripts/benchmark_inference_time.py --model protonet --roi --shot 5   # ROI ProtoNet
 ```
-
-All four expect the relevant checkpoints to already exist at `$DATA_ROOT/models/...` /
-`$DATA_ROOT/models_fsl/...`.
 
 ## Results
 
-Example results on the **MIX** view, seed 0 (from the original experiment run; exact numbers depend on
-your data split and are only reproducible with the same train/test partition):
-
-| Model | Accuracy | Weighted F1 |
-|---|---|---|
-| ResNet34, full image | 70.4% | 70.2% |
-| ResNet34, full image + TTA | 70.4% | 70.0% |
-| ResNet34, ROI | 98.3% | 98.3% |
-| ResNet34, ROI + TTA | 98.3% | 98.3% |
-| ProtoNet, ROI (5-shot, 1000 episodes) | 97.0% ± 3.0% | — |
-| ProtoNet, ROI (5-shot) + TTA | 96.7% ± 3.4% | — |
-
-ROI cropping gives a large accuracy jump over full-image classification on this view; see
-[demo/](demo/) for a runnable inference + Grad-CAM + UMAP comparison, and `baseline/scripts/summarize_*.py`
-/ `fewshot/scripts/eval_results_fsl.py` to aggregate results across all views and seeds.
+See [results/README.md](results/README.md) for a snapshot of reported accuracy per model/view and the
+best checkpoint per view. Real checkpoints/metrics live under `$DATA_ROOT`, not in this repo.
 
 ## `legacy/`
 
@@ -188,7 +190,7 @@ ROI cropping gives a large accuracy jump over full-image classification on this 
 reproducible pipeline) holds scripts kept only for local reference: ones that operate on superseded
 dataset versions (`roi_dataset`/`roi_dataset_v3` instead of the current `roi_dataset_v4`), one-off
 preprocessing utilities (`convert_images_to_png.py`), and superseded drafts (`plot_gradcam_full_mix.py`
-loads the ROI checkpoint despite its name — fixed in `plot_gradcam_baseline_mix.py`).
+loads the ROI checkpoint despite its name — fixed in `scripts/plot_gradcam_single_model.py`).
 
 
 ## How to cite

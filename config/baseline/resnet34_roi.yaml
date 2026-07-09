@@ -1,0 +1,11 @@
+backbone: resnet34
+roi: true
+img_size: 224
+batch_size: 16
+epochs: 40
+lr: 1.0e-4
+optimizer: adam
+weight_decay: 0.0
+patience: 7
+scheduler_factor: 0.5
+scheduler_patience: 3

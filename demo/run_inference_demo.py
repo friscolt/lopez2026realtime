@@ -31,8 +31,8 @@ from pytorch_grad_cam.utils.model_targets import ClassifierOutputTarget
 import umap
 
 REPO_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-sys.path.append(os.path.join(REPO_ROOT, "fewshot", "scripts"))
-from models.protonet_resnet34 import ProtoNet  # noqa: E402
+sys.path.append(REPO_ROOT)
+from src.models.protonet import ProtoNet  # noqa: E402
 
 DATA_ROOT = os.environ.get("DATA_ROOT", "/mnt")
 

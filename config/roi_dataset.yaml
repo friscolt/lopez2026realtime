@@ -1,0 +1,4 @@
+datasets: [SUR, SEC, MIX]
+splits: [train, test]
+padding: 20
+output_dirname: roi_dataset_v4
