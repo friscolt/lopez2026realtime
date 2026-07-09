@@ -1,0 +1,28 @@
+# Python
+__pycache__/
+*.py[cod]
+*.egg-info/
+.ipynb_checkpoints/
+
+# Environments
+.venv/
+venv/
+env/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Editors
+.vscode/
+.idea/
+
+# Data / models / outputs (never versioned, live under $DATA_ROOT)
+*.pth
+*.ckpt
+*.pt
+
+# Generated figures (reproducible from scripts, not versioned)
+*.png
+!fewshot/scripts/*.png
+demo/outputs/

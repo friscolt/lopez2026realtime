@@ -1,0 +1,29 @@
+cff-version: 1.2.0
+message: "If you use this software, please cite the paper below."
+title: "Kidney Stone Subtype Classification — Baselines, ROI, Few-Shot & Grad-CAM"
+authors:
+  - family-names: "Lopez-Tiro"
+    given-names: "Francisco"
+    affiliation: "Tecnologico de Monterrey & Université de Lorraine"
+license: MIT
+preferred-citation:
+  type: conference-paper
+  title: "Real-time image segmentation for kidney stone identification using light-weight AI models"
+  authors:
+    - family-names: "Lopez-Tiro"
+      given-names: "Francisco"
+    - family-names: "Larose"
+      given-names: "Clément"
+    - family-names: "Doerler"
+      given-names: "Samuel"
+    - family-names: "Ochoa-Ruiz"
+      given-names: "Gilberto"
+    - family-names: "Daul"
+      given-names: "Christian"
+  collection-title: "Real-time Processing of Image, Depth and Video Information 2026"
+  conference:
+    name: "Real-time Processing of Image, Depth and Video Information 2026"
+  publisher:
+    name: "SPIE"
+  start: 18
+  year: 2026

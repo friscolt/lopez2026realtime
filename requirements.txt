@@ -1,0 +1,14 @@
+# torch/torchvision: install the CUDA build matching your system from
+# https://pytorch.org/get-started/locally/ (verified with the CUDA 11.8 build below)
+torch==2.7.1
+torchvision==0.22.1
+numpy==2.2.6
+pandas==2.3.3
+scikit-learn==1.7.2
+tqdm==4.67.1
+opencv-python==4.12.0.88
+Pillow==12.0.0
+matplotlib==3.10.8
+timm==1.0.25
+grad-cam==1.5.5
+umap-learn==0.5.11

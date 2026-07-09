@@ -1,0 +1,24 @@
+name: CI
+
+on:
+  push:
+  pull_request:
+
+jobs:
+  syntax-check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.10"
+
+      - name: Compile-check all Python scripts
+        run: |
+          find . -name "*.py" -print0 | xargs -0 -n1 python -m py_compile
+
+      - name: Syntax-check all shell scripts
+        run: |
+          for f in $(find . -name "*.sh"); do bash -n "$f"; done
