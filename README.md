@@ -1,10 +1,8 @@
 # Kidney Stone Subtype Classification — Baselines, ROI, Few-Shot & Grad-CAM
 
-![CI](https://github.com/USERNAME/REPO/actions/workflows/ci.yml/badge.svg)
+![CI](https://github.com/friscolt/lopez2026realtime/actions/workflows/ci.yml/badge.svg)
 ![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)
 ![Python 3.10+](https://img.shields.io/badge/python-3.10%2B-blue)
-
-> Replace `USERNAME/REPO` in the CI badge above with your actual GitHub path once this repo is pushed.
 
 Research code for classifying kidney stone (Randall's plug / calculi) subtypes from endoscopic images
 across three acquisition views — **SUR** (surface), **SEC** (section), **MIX** (combined) — using
