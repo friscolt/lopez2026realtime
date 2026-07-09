@@ -190,12 +190,6 @@ dataset versions (`roi_dataset`/`roi_dataset_v3` instead of the current `roi_dat
 preprocessing utilities (`convert_images_to_png.py`), and superseded drafts (`plot_gradcam_full_mix.py`
 loads the ROI checkpoint despite its name — fixed in `plot_gradcam_baseline_mix.py`).
 
-## Roadmap
-
-Continual-learning experiments (class-incremental training over the kidney stone subtypes, comparing
-naive fine-tuning, experience replay, weight averaging, and LWF) exist as trained checkpoints on the
-original development machine but are not yet implemented/published in this repository — they are
-planned as a separate project.
 
 ## How to cite
 
